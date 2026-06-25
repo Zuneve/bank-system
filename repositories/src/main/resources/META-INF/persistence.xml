@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             version="3.1">
+
+    <persistence-unit name="bank-persistence-unit"
+                      transaction-type="RESOURCE_LOCAL">
+
+        <provider>
+            org.hibernate.jpa.HibernatePersistenceProvider
+        </provider>
+
+        <class>ru.gusev.user.User</class>
+        <class>ru.gusev.account.Account</class>
+        <class>ru.gusev.operation.Operation</class>
+
+        <properties>
+
+            <!-- PostgreSQL -->
+
+            <property name="jakarta.persistence.jdbc.driver"
+                      value="org.postgresql.Driver"/>
+
+            <property name="jakarta.persistence.jdbc.url"
+                      value="jdbc:postgresql://localhost:5433/bank_db"/>
+
+            <property name="jakarta.persistence.jdbc.user"
+                      value="bank_user"/>
+
+            <property name="jakarta.persistence.jdbc.password"
+                      value="bank_password"/>
+
+            <!-- Hibernate -->
+
+            <property name="hibernate.dialect"
+                      value="org.hibernate.dialect.PostgreSQLDialect"/>
+
+            <property name="hibernate.hbm2ddl.auto"
+                      value="update"/>
+
+            <property name="hibernate.show_sql"
+                      value="true"/>
+
+            <property name="hibernate.format_sql"
+                      value="true"/>
+
+        </properties>
+    </persistence-unit>
+
+</persistence>

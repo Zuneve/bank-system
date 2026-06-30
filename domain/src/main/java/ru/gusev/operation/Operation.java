@@ -25,7 +25,7 @@ public class Operation {
 
     private LocalDateTime createdAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Account account;
 
     public Operation(OperationType type, BigDecimal amount, Account account) {

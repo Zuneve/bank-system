@@ -1,15 +1,21 @@
 package ru.gusev.account;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.gusev.operation.Operation;
 import ru.gusev.operation.OperationType;
 import ru.gusev.operation.OperationHistoryRepository;
+import ru.gusev.request.account.CreateAccountRequest;
 import ru.gusev.user.User;
+import ru.gusev.user.UserRepository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
     private static final BigDecimal FRIEND_TRANSFER_COMMISSION_RATE = new BigDecimal("0.03");
@@ -17,18 +23,37 @@ public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
     private final OperationHistoryRepository operationHistoryRepository;
+    private final UserRepository userRepository;
 
     @Override
-    public Account create(User user) {
-        return accountRepository.create(user);
+    @Transactional
+    public Account create(CreateAccountRequest request) {
+        User owner = userRepository.findUserById(request.userId());
+        if (owner == null) {
+            throw new IllegalArgumentException("UserId not found");
+        }
+
+        return accountRepository.create(owner);
     }
 
     @Override
+    @Transactional
     public void save(Account account) {
         accountRepository.save(account);
     }
 
     @Override
+    public List<Account> getAccountsByUserId(UUID userId) {
+        return accountRepository.getAccountsByUserId(userId);
+    }
+
+    @Override
+    public List<Account> getAllAccounts() {
+        return accountRepository.getAllAccounts();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public BigDecimal getBalanceById(UUID accountId) {
         if (accountRepository.getAccountById(accountId).isEmpty()) {
             throw new IllegalArgumentException("AccountId not found");
@@ -38,6 +63,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional
     public void withdraw(UUID accountId, BigDecimal amount) {
         requirePositiveAmount(amount);
 
@@ -60,6 +86,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional
     public void deposit(UUID accountId, BigDecimal amount) {
         requirePositiveAmount(amount);
 
@@ -78,6 +105,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional
     public void transfer(UUID sourceAccountId, UUID targetAccountId, BigDecimal amount) {
         requirePositiveAmount(amount);
 

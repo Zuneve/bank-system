@@ -1,5 +1,6 @@
 package ru.gusev.operation;
 
+import org.springframework.data.jpa.domain.Specification;
 import ru.gusev.account.Account;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -40,5 +41,10 @@ public class JpaOperationHistoryRepository implements OperationHistoryRepository
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         Account account = entityManager.find(Account.class, accountId);
         return account.getOperations();
+    }
+
+    @Override
+    public List<Operation> findAll(Specification<Operation> specification) {
+        return List.of();
     }
 }

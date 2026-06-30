@@ -3,8 +3,9 @@ package ru.gusev.user;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
-import ru.gusev.user.info.HairColor;
+import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -12,13 +13,11 @@ public class JpaUserRepository implements UserRepository {
     private final EntityManagerFactory entityManagerFactory;
 
     @Override
-    public User createUser(String login, String name, int age, boolean isMale, HairColor hairColor) {
+    public User createUser(User user) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         try {
             entityManager.getTransaction().begin();
-
-            User user = new User(login, name, age, isMale, hairColor);
 
             entityManager.persist(user);
 
@@ -73,6 +72,11 @@ public class JpaUserRepository implements UserRepository {
                     .setParameter("login", login)
                     .getSingleResult();
         }
+    }
+
+    @Override
+    public List<User> findAll(Specification<User> specification) {
+        return List.of();
     }
 
     @Override

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import ru.gusev.user.User;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,6 +64,16 @@ public class JpaAccountRepository implements AccountRepository{
         try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
             return Optional.ofNullable(entityManager.find(Account.class, accountId));
         }
+    }
+
+    @Override
+    public List<Account> getAccountsByUserId(UUID userId) {
+        return List.of();
+    }
+
+    @Override
+    public List<Account> getAllAccounts() {
+        return List.of();
     }
 
     @Override

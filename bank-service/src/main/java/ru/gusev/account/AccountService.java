@@ -1,14 +1,19 @@
 package ru.gusev.account;
 
-import ru.gusev.user.User;
+import ru.gusev.request.account.CreateAccountRequest;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public interface AccountService {
-    Account create(User user);
+    Account create(CreateAccountRequest request);
 
     void save(Account account);
+
+    List<Account> getAccountsByUserId(UUID userId);
+
+    List<Account> getAllAccounts();
 
     BigDecimal getBalanceById(UUID accountId);
 

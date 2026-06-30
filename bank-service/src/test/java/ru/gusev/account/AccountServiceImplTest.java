@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import ru.gusev.operation.OperationHistoryRepository;
+import ru.gusev.user.UserRepository;
 import ru.gusev.user.User;
 import ru.gusev.user.info.HairColor;
 
@@ -25,13 +26,15 @@ import static org.mockito.Mockito.when;
 class AccountServiceImplTest {
     private AccountRepository accountRepository;
     private OperationHistoryRepository operationHistoryRepository;
+    private UserRepository userRepository;
     private AccountService accountService;
 
     @BeforeEach
     void setUp() {
         accountRepository = mock(AccountRepository.class);
         operationHistoryRepository = mock(OperationHistoryRepository.class);
-        accountService = new AccountServiceImpl(accountRepository, operationHistoryRepository);
+        userRepository = mock(UserRepository.class);
+        accountService = new AccountServiceImpl(accountRepository, operationHistoryRepository, userRepository);
     }
 
     @Test

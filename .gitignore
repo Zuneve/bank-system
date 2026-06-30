@@ -1,37 +1,48 @@
+# Maven and build output
 target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-.kotlin
+**/target/
+build/
+out/
+*.class
 
-### IntelliJ IDEA ###
+# IntelliJ IDEA
 .idea/
-.idea/**
 *.iws
 *.iml
 *.ipr
 
-### Eclipse ###
-.apt_generated
+# Eclipse
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
-.sts4-cache
+.sts4-cache/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
 
-### VS Code ###
+# Visual Studio Code
 .vscode/
 
-### Mac OS ###
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+logs/
+*.tmp
+*.swp
+*~
+
+# Operating system files
 .DS_Store
+Thumbs.db
+
+# Keep the Maven Wrapper JAR if it is added
+!.mvn/wrapper/maven-wrapper.jar

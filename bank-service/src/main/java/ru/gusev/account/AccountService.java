@@ -11,6 +11,8 @@ public interface AccountService {
 
     void save(Account account);
 
+    Account findById(UUID accountId);
+
     List<Account> getAccountsByUserId(UUID userId);
 
     List<Account> getAllAccounts();

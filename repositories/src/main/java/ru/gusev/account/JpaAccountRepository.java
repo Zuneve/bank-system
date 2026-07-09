@@ -60,6 +60,11 @@ public class JpaAccountRepository implements AccountRepository{
     }
 
     @Override
+    public Account findById(UUID accountId) {
+        return null;
+    }
+
+    @Override
     public Optional<Account> getAccountById(UUID accountId) {
         try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
             return Optional.ofNullable(entityManager.find(Account.class, accountId));

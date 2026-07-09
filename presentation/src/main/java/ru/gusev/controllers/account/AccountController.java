@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.gusev.account.AccountService;
 import ru.gusev.mappers.account.AccountMapper;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AccountController {
     private final AccountService accountService;
     private final AccountMapper accountMapper;

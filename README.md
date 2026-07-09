@@ -1,116 +1,191 @@
-# 🚀 Bank Service
+# Bank Service
 
-Многомодульное REST-приложение банковской системы. Сервис хранит пользователей, счета и историю операций в PostgreSQL, рассчитывает комиссии переводов и предоставляет API с документацией Swagger.
+Bank Service is a multi-module Spring Boot application for a simple banking system. It supports users, accounts, friends, operation history, transfers with commissions, and role-based access for administrators and clients.
 
-## ✨ Особенности
+## What It Can Do
 
-* **Пользователи:** создание, поиск, фильтрация по полу и цвету волос, управление друзьями.
-* **Счета:** создание нескольких счетов для одного пользователя и просмотр баланса.
-* **Операции:** пополнение, снятие и хранение истории изменений баланса.
-* **Переводы:** комиссия `0%` между своими счетами, `3%` при переводе другу и `10%` остальным пользователям.
-* **Оптимизация ORM:** связанные сущности загружаются через `@EntityGraph`, чтобы не возникала проблема N+1.
-* **Документация API:** Swagger UI с описанием эндпоинтов, кодов ответа и DTO.
-* **Тестирование:** бизнес-логика покрыта unit-тестами с Mockito без обращения к реальной БД.
+* Create administrators and clients.
+* Store users, accounts, authentication accounts, and operations in PostgreSQL.
+* Create accounts for users.
+* Deposit, withdraw, and transfer money.
+* Calculate transfer commissions:
+  * `0%` between accounts of the same user;
+  * `3%` when transferring to a friend;
+  * `10%` for other users.
+* Protect endpoints with Spring Security roles:
+  * `ADMIN`;
+  * `CLIENT`.
+* Show API documentation in Swagger UI.
 
-## 🛠️ Стек технологий
+## Tech Stack
 
-* **Язык:** Java 17+
-* **Сборка:** Maven, многомодульный проект
-* **Фреймворк:** Spring Boot 3.5.10, Spring Web
-* **База данных:** PostgreSQL 16, Docker Compose
-* **Доступ к данным:** Hibernate, Jakarta Persistence, Spring Data JPA
-* **Документация:** springdoc-openapi 2.8.17, Swagger UI
-* **Маппинг и утилиты:** MapStruct, Lombok
-* **Тестирование:** JUnit 5, Mockito
+* Java 17
+* Spring Boot 3
+* Spring Web
+* Spring Security
+* Spring Data JPA
+* Hibernate / JPA
+* PostgreSQL
+* Maven
+* Docker Compose
+* Lombok
+* MapStruct
+* JUnit 5 / Mockito
+* springdoc-openapi
 
-## 📦 Модули
+## Project Modules
 
-* `domain` — JPA-сущности `User`, `Account`, `Operation` и связанные перечисления.
-* `repositories` — интерфейсы репозиториев, Spring Data JPA-адаптеры и настройки PostgreSQL.
-* `dto` — модели запросов и ответов REST API с Bean Validation и Swagger-аннотациями.
-* `bank-service` — бизнес-логика счетов, пользователей, комиссий и операций.
-* `presentation` — REST-контроллеры, MapStruct-мапперы и точка входа приложения.
-* `security` — отдельный модуль с базовой конфигурацией Spring Security и ролями; пока не подключён к запускаемому модулю `presentation`.
+| Module | Purpose |
+| --- | --- |
+| `domain` | JPA entities and enums. |
+| `repositories` | Spring Data repositories, adapters, specifications, database config. |
+| `dto` | Request/response DTOs and MapStruct mappers. |
+| `bank-service` | Business logic for users, accounts, transfers, and operations. |
+| `security` | Spring Security config, auth users, roles, ownership checks. |
+| `presentation` | REST controllers and application entry point. |
 
-## 📦 Установка
+## Security
 
-Для запуска потребуются JDK 17+, Maven и Docker.
+The current implementation uses HTTP Basic authentication.
 
-1. Клонируйте репозиторий:
+Default development admin:
 
-   ```bash
-   git clone <repository-url>
-   ```
+```text
+username: admin
+password: admin
+```
 
-2. Перейдите в каталог проекта:
+Access rules:
 
-   ```bash
-   cd bank
-   ```
+* unauthenticated users receive `401`;
+* admins can create users/admins/clients and read all users/accounts;
+* clients can read and modify only their own profile, friends, and accounts;
+* access to another role's endpoints returns `403`.
 
-3. Запустите PostgreSQL:
+CSRF is currently disabled because the API is tested with HTTP Basic. If the project switches to cookie/session login, CSRF should be enabled again.
 
-   ```bash
-   docker compose up -d
-   ```
+## Run Locally
 
-4. Соберите и установите все модули:
+Start PostgreSQL:
 
-   ```bash
-   mvn clean install
-   ```
+```bash
+docker compose up -d
+```
 
-PostgreSQL доступен на `localhost:5433`. Используются база `bank_db`, пользователь `bank_user` и пароль `bank_password`.
+Build the project:
 
-## 🚀 Запуск
+```bash
+mvn clean install
+```
 
-Запустите REST-приложение:
+Run the application:
 
 ```bash
 mvn -f presentation/pom.xml spring-boot:run
 ```
 
-После появления строки `Started Main` доступны:
+Open:
 
-* REST API — `http://localhost:8080/api`
-* Swagger UI — `http://localhost:8080/swagger-ui/index.html`
-* OpenAPI JSON — `http://localhost:8080/v3/api-docs`
+* API: `http://localhost:8080/api`
+* Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+* OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 
-Основные группы эндпоинтов:
+Database settings:
 
-* `/api/users` — пользователи и друзья;
-* `/api/accounts` — счета, баланс, пополнение, снятие и переводы;
-* `/api/operations` — история операций с фильтрацией.
-
-Остановить PostgreSQL:
-
-```bash
-docker compose down
+```text
+url: jdbc:postgresql://localhost:5433/bank_db
+username: bank_user
+password: bank_password
 ```
 
-Удалить контейнер вместе с тестовыми данными:
+## Main Endpoints
+
+### Auth
+
+| Method | Path | Role | Description |
+| --- | --- | --- | --- |
+| `POST` | `/api/auth/admins` | `ADMIN` | Create an admin account. |
+| `POST` | `/api/auth/clients` | `ADMIN` | Create a banking user and linked client account. |
+
+### Admin
+
+| Method | Path | Role | Description |
+| --- | --- | --- | --- |
+| `GET` | `/api/admin/users` | `ADMIN` | Get users with optional filters. |
+| `GET` | `/api/admin/users/{userId}` | `ADMIN` | Get a user by id. |
+| `GET` | `/api/admin/users/{userId}/accounts` | `ADMIN` | Get user's accounts. |
+| `GET` | `/api/admin/accounts` | `ADMIN` | Get all accounts. |
+| `GET` | `/api/admin/accounts/{accountId}` | `ADMIN` | Get account with operations. |
+
+### Client
+
+| Method | Path | Role | Description |
+| --- | --- | --- | --- |
+| `GET` | `/api/client/me` | `CLIENT` | Get current client profile. |
+| `GET` | `/api/client/me/friends` | `CLIENT` | Get current client's friends. |
+| `POST` | `/api/client/me/friends/{friendId}` | `CLIENT` | Add a friend. |
+| `DELETE` | `/api/client/me/friends/{friendId}` | `CLIENT` | Remove a friend. |
+| `GET` | `/api/client/accounts` | `CLIENT` | Get current client's accounts. |
+| `GET` | `/api/client/accounts/{accountId}` | `CLIENT` | Get own account by id. |
+| `POST` | `/api/client/accounts/{accountId}/deposit` | `CLIENT` | Deposit money to own account. |
+| `POST` | `/api/client/accounts/{accountId}/withdraw` | `CLIENT` | Withdraw money from own account. |
+| `POST` | `/api/client/accounts/transfer` | `CLIENT` | Transfer money from own account. |
+
+Legacy endpoints under `/api/users`, `/api/accounts`, and `/api/operations` are kept for previous labs and are protected with `ADMIN`.
+
+## Quick Check
+
+Anonymous request should fail:
 
 ```bash
-docker compose down -v
+curl -i http://localhost:8080/api/admin/users
 ```
 
-## ✅ Проверка
+Admin request should work:
 
-Запуск всех тестов:
+```bash
+curl -i -u admin:admin http://localhost:8080/api/admin/users
+```
+
+Create a client:
+
+```bash
+curl -i -u admin:admin \
+  -X POST http://localhost:8080/api/auth/clients \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "client1",
+    "password": "clientPassword123",
+    "login": "client1_login",
+    "name": "Client One",
+    "age": 20,
+    "male": true,
+    "hairColor": "Black"
+  }'
+```
+
+Client request should work:
+
+```bash
+curl -i -u client1:clientPassword123 http://localhost:8080/api/client/me
+```
+
+Client request to admin API should fail:
+
+```bash
+curl -i -u client1:clientPassword123 http://localhost:8080/api/accounts
+```
+
+Expected status: `403`.
+
+## Tests
 
 ```bash
 mvn test
 ```
+## Author
 
-SQL-запросы Hibernate выводятся в консоль благодаря `spring.jpa.show-sql=true`. Для проверки отсутствия N+1 вызовите:
+Anton Gusev
 
-```bash
-curl http://localhost:8080/api/accounts
-```
-
-Список счетов и их владельцы должны загружаться одним SQL-запросом с `JOIN`, без отдельных запросов для каждого владельца.
-
-## 👤 Автор 
-#### Антон Гусев 
-#### tg: zuneve
-#### mail: antonyogusev@gmail.com
+* Telegram: `zuneve`
+* Email: `antonyogusev@gmail.com`

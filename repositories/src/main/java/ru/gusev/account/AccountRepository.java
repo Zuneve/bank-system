@@ -12,6 +12,8 @@ public interface AccountRepository {
 
     void save(Account account);
 
+    Account findById(UUID accountId);
+
     Optional<Account> getAccountById(UUID accountId);
 
     List<Account> getAccountsByUserId(UUID userId);

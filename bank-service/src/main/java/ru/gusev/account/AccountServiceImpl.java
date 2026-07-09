@@ -43,6 +43,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public Account findById(UUID accountId) {
+        return accountRepository.findById(accountId);
+    }
+
+    @Override
     public List<Account> getAccountsByUserId(UUID userId) {
         return accountRepository.getAccountsByUserId(userId);
     }

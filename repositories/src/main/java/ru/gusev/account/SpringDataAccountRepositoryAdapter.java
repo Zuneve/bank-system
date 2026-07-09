@@ -1,5 +1,6 @@
 package ru.gusev.account;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,11 @@ public class SpringDataAccountRepositoryAdapter implements AccountRepository {
     @Override
     public void save(Account account) {
         repository.save(account);
+    }
+
+    @Override
+    public Account findById(UUID accountId) {
+        return repository.findById(accountId).orElseThrow(() -> new EntityNotFoundException("Account not found"));
     }
 
     @Override

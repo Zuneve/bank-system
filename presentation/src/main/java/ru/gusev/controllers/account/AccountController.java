@@ -9,9 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.gusev.account.AccountService;
+import ru.gusev.currency.CurrencyBalanceService;
 import ru.gusev.mappers.account.AccountMapper;
 import ru.gusev.request.account.CreateAccountRequest;
 import ru.gusev.response.account.AccountResponse;
+import ru.gusev.response.account.CurrencyBalanceResponse;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.UUID;
 public class AccountController {
     private final AccountService accountService;
     private final AccountMapper accountMapper;
+    private final CurrencyBalanceService currencyBalanceService;
 
     @Operation(summary = "Get all accounts owned by a user")
     @ApiResponses({
@@ -73,9 +76,23 @@ public class AccountController {
             @ApiResponse(responseCode = "404", description = "Account not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @GetMapping("/{accountId}/balance")
+    @GetMapping(value = "/{accountId}/balance", params = "!currency")
     public BigDecimal getBalance(@PathVariable UUID accountId) {
         return accountService.getBalanceById(accountId);
+    }
+
+    @Operation(summary = "Get an account balance in the requested currency")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Converted balance returned successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid currency code"),
+            @ApiResponse(responseCode = "404", description = "Account or currency not found"),
+            @ApiResponse(responseCode = "503", description = "Rates service is unavailable")
+    })
+    @GetMapping(value = "/{accountId}/balance", params = "currency")
+    public CurrencyBalanceResponse getBalanceInCurrency(
+            @PathVariable UUID accountId,
+            @RequestParam String currency) {
+        return currencyBalanceService.getBalance(accountId, currency);
     }
 
     @Operation(summary = "Withdraw money from an account")

@@ -9,9 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import ru.gusev.currency.CurrencyBalanceService;
 import ru.gusev.mappers.account.AccountMapper;
 import ru.gusev.request.operation.TransferRequest;
 import ru.gusev.response.account.AccountResponse;
+import ru.gusev.response.account.CurrencyBalanceResponse;
 import ru.gusev.services.ClientService;
 
 import java.math.BigDecimal;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class ClientAccountController {
     private final ClientService clientAccountService;
     private final AccountMapper accountMapper;
+    private final CurrencyBalanceService currencyBalanceService;
 
     @Operation(summary = "Get current client's accounts")
     @ApiResponses({
@@ -54,6 +57,25 @@ public class ClientAccountController {
             @PathVariable UUID accountId
     ) {
         return accountMapper.toAccountResponse(clientAccountService.getMyAccount(authentication.getName(), accountId));
+    }
+
+    @Operation(summary = "Get current client's account balance in the requested currency")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Converted balance returned successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid currency code"),
+            @ApiResponse(responseCode = "401", description = "Authentication is required"),
+            @ApiResponse(responseCode = "403", description = "Account does not belong to the current client"),
+            @ApiResponse(responseCode = "404", description = "Account or currency not found"),
+            @ApiResponse(responseCode = "503", description = "Rates service is unavailable")
+    })
+    @GetMapping(value = "/{accountId}/balance", params = "currency")
+    public CurrencyBalanceResponse getMyBalanceInCurrency(
+            Authentication authentication,
+            @PathVariable UUID accountId,
+            @RequestParam String currency
+    ) {
+        clientAccountService.getMyAccount(authentication.getName(), accountId);
+        return currencyBalanceService.getBalance(accountId, currency);
     }
 
     @Operation(summary = "Deposit money into current client's account")

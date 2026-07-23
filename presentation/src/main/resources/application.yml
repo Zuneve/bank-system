@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/bank_db
+    username: bank_user
+    password: bank_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "ru.gusev.*"
+
+rates:
+  reply-timeout: 3s
+  cache-ttl: 30s
+  updates-group-id: bank-rates-updates
+  replies-group-id: bank-rates-replies
+  topics:
+    updates: rates.updates
+    requests: rates.requests
+    replies: rates.replies

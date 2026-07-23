@@ -21,6 +21,25 @@ public class GlobalExceptionHandler {
         return new ErrorResponse("Access denied");
     }
 
+    @ExceptionHandler(InvalidCurrencyException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleInvalidCurrency(InvalidCurrencyException exception) {
+        return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler(UnsupportedCurrencyException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleUnsupportedCurrency(UnsupportedCurrencyException exception) {
+        return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler(RateServiceUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ErrorResponse handleRateServiceUnavailable(
+            RateServiceUnavailableException exception) {
+        return new ErrorResponse(exception.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleUnexpected(Exception exception) {

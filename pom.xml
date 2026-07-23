@@ -22,6 +22,7 @@
         <module>presentation</module>
         <module>dto</module>
         <module>security</module>
+        <module>rates-service</module>
     </modules>
 
     <properties>

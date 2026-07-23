@@ -1,0 +1,26 @@
+rates:
+  generation-interval-ms: 10000
+  generation-initial-delay-ms: 1000
+  topics:
+    updates: rates.updates
+    requests: rates.requests
+    replies: rates.replies
+
+spring:
+  application:
+    name: rates-service
+  main:
+    web-application-type: none
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+    consumer:
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "ru.gusev.*"

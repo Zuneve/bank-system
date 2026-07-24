@@ -38,31 +38,30 @@ public class RateProvider {
 
         RateUpdateMessage rateUpdateMessage = rateCache.get(normalizeCurrency);
 
-        if (rateUpdateMessage.timestamp().isAfter(Instant.now().minus(cacheTtlSeconds))) {
-            RateResponseMessage response = rateRequestClient.request(normalizeCurrency);
-
-            if (response.error() != null) {
-                throw new UnsupportedCurrencyException("Currency not supported");
-            }
-
-
-            RateUpdateMessage updateMessage =
-                    new RateUpdateMessage(
-                            normalizeCurrency,
-                            response.rateToRub(),
-                            response.timestamp()
-                    );
-
-            rateCache.save(updateMessage);
-
-            return updateMessage ;
-        }
-
-        if (rateUpdateMessage.currency() != null) {
+        if (rateUpdateMessage != null
+                && rateUpdateMessage.timestamp()
+                .isAfter(Instant.now().minus(cacheTtlSeconds))) {
             return rateUpdateMessage;
         }
 
-        throw new UnsupportedCurrencyException("Currency not suported");
+        RateResponseMessage response =
+                rateRequestClient.request(normalizeCurrency);
+
+        if (response.error() != null) {
+            throw new UnsupportedCurrencyException(
+                    "Currency not supported"
+            );
+        }
+
+        RateUpdateMessage updateMessage = new RateUpdateMessage(
+                normalizeCurrency,
+                response.rateToRub(),
+                response.timestamp()
+        );
+
+        rateCache.save(updateMessage);
+
+        return updateMessage;
     }
 
     private String normalize(String currency) {

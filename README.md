@@ -1,6 +1,6 @@
 # Bank Service
 
-Bank Service is a multi-module Spring Boot application for a simple banking system. It supports users, accounts, friends, operation history, transfers with commissions, and role-based access for administrators and clients.
+Bank Service is a multi-module Spring Boot application for a simple banking system. It supports users, accounts, friends, operation history, transfers with commissions, role-based access, and balance conversion using exchange rates delivered through Kafka.
 
 ## What It Can Do
 
@@ -15,17 +15,23 @@ Bank Service is a multi-module Spring Boot application for a simple banking syst
 * Protect endpoints with Spring Security roles:
   * `ADMIN`;
   * `CLIENT`.
+* Generate changing USD and EUR exchange rates in a separate service.
+* Publish rate updates and process on-demand rate requests through Kafka.
+* Return account balances and operation amounts converted from RUB.
+* Cache recent exchange rates in the banking application.
 * Show API documentation in Swagger UI.
 
 ## Tech Stack
 
-* Java 17
+* Java 22
 * Spring Boot 3
 * Spring Web
 * Spring Security
 * Spring Data JPA
+* Spring for Apache Kafka
 * Hibernate / JPA
 * PostgreSQL
+* Apache Kafka
 * Maven
 * Docker Compose
 * Lombok
@@ -43,6 +49,21 @@ Bank Service is a multi-module Spring Boot application for a simple banking syst
 | `bank-service` | Business logic for users, accounts, transfers, and operations. |
 | `security` | Spring Security config, auth users, roles, ownership checks. |
 | `presentation` | REST controllers and application entry point. |
+| `rates-service` | Scheduled USD/EUR rate generation and Kafka request/reply handling. |
+
+## Exchange Rates
+
+All account balances and operation amounts are stored in RUB. The separate `rates-service` generates USD and EUR rates every 10 seconds and publishes them to the `rates.updates` Kafka topic.
+
+The banking application keeps recent rates in an in-memory cache. If a requested rate is absent or older than 30 seconds, it sends a request through `rates.requests` and waits for a response on `rates.replies` for up to 3 seconds.
+
+Kafka topics:
+
+| Topic | Purpose |
+| --- | --- |
+| `rates.updates` | Periodic USD/EUR rate updates. |
+| `rates.requests` | On-demand requests from the banking application. |
+| `rates.replies` | Replies from `rates-service`. |
 
 ## Security
 
@@ -66,7 +87,7 @@ CSRF is currently disabled because the API is tested with HTTP Basic. If the pro
 
 ## Run Locally
 
-Start PostgreSQL:
+Start PostgreSQL, Kafka, and Kafka UI:
 
 ```bash
 docker compose up -d
@@ -78,7 +99,13 @@ Build the project:
 mvn clean install
 ```
 
-Run the application:
+Run the rates service:
+
+```bash
+mvn -f rates-service/pom.xml spring-boot:run
+```
+
+In another terminal, run the banking application:
 
 ```bash
 mvn -f presentation/pom.xml spring-boot:run
@@ -89,6 +116,7 @@ Open:
 * API: `http://localhost:8080/api`
 * Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 * OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+* Kafka UI: `http://localhost:8085`
 
 Database settings:
 
@@ -116,6 +144,7 @@ password: bank_password
 | `GET` | `/api/admin/users/{userId}/accounts` | `ADMIN` | Get user's accounts. |
 | `GET` | `/api/admin/accounts` | `ADMIN` | Get all accounts. |
 | `GET` | `/api/admin/accounts/{accountId}` | `ADMIN` | Get account with operations. |
+| `GET` | `/api/admin/accounts/{accountId}/operations` | `ADMIN` | Get account operations. |
 
 ### Client
 
@@ -127,11 +156,12 @@ password: bank_password
 | `DELETE` | `/api/client/me/friends/{friendId}` | `CLIENT` | Remove a friend. |
 | `GET` | `/api/client/accounts` | `CLIENT` | Get current client's accounts. |
 | `GET` | `/api/client/accounts/{accountId}` | `CLIENT` | Get own account by id. |
+| `GET` | `/api/client/accounts/{accountId}/balance?currency=USD` | `CLIENT` | Get own balance converted from RUB. |
 | `POST` | `/api/client/accounts/{accountId}/deposit` | `CLIENT` | Deposit money to own account. |
 | `POST` | `/api/client/accounts/{accountId}/withdraw` | `CLIENT` | Withdraw money from own account. |
 | `POST` | `/api/client/accounts/transfer` | `CLIENT` | Transfer money from own account. |
 
-Legacy endpoints under `/api/users`, `/api/accounts`, and `/api/operations` are kept for previous labs and are protected with `ADMIN`.
+Legacy endpoints under `/api/users`, `/api/accounts`, and `/api/operations` are kept for previous labs and are protected with `ADMIN`. The account balance and operation endpoints accept an optional `currency=USD|EUR|RUB` query parameter.
 
 ## Quick Check
 
@@ -183,6 +213,7 @@ Expected status: `403`.
 ```bash
 mvn test
 ```
+
 ## Author
 
 Anton Gusev
